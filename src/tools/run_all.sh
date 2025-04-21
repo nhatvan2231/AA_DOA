@@ -1,6 +1,6 @@
 #!/bin/sh
 #OUTPUT="${OUTPUT:=test.txt}"
-for dir in data/rss45/*.dat; do
+for dir in ~/ncpa/libNCPA/data/rss45/*.dat; do
 	echo "\n${dir}"
 	OUTPUT=$(echo ${dir} | sed 's/.dat/_tau.bin/')
 	#echo $OUTPUT
