@@ -1,6 +1,6 @@
 #!/bin/sh
 #OUTPUT="${OUTPUT:=test.txt}"
-for dir in ~/AA_DOA/src/data/rss360/*.dat; do
+for dir in ~/AA_DOA/src/data/rss360_noise/*.dat; do
 	echo "\n${dir}"
 	OUTPUT=$(echo ${dir} | sed 's/\.dat/_tau.bin/')
 	#echo $OUTPUT
