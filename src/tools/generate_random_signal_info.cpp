@@ -10,14 +10,15 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-	if(argc < 3 || argc > 11){
-		cerr << "Usage: " << argv[0] << " --directory <path to directory> [optional: --lowerBound <angle lower bound> --upperBound <angle upper bound> --numofAngles <number of Angles in a set> --setofAngle <number of set of Angle>]\n" << endl;
+	if(argc < 3 || argc > 13){
+		cerr << "Usage: " << argv[0] << " --directory <path to directory> [optional: --lowerBound <angle lower bound> --upperBound <angle upper bound> --numofAngles <number of Angles in a set> --setofAngle <number of set of Angle> --std <std of speed noise>]\n" << endl;
 		return 1;
 	}
 	random_device rd;
 	default_random_engine mt{rd()};
 	float lower_bound = 0.0;
 	float upper_bound = 1.0;
+	float std = 5.0;
 	int N = 100;
 	int M = 10;
 	string directory = ".";
@@ -32,10 +33,12 @@ int main(int argc, char* argv[]){
 			N = atoi(argv[arg+1]);
 		else if(strcmp(argv[arg], "--setofAngles") == 0 || strcmp(argv[arg], "-sA") == 0)
 			M = atoi(argv[arg+1]);
+		else if(strcmp(argv[arg], "--std") == 0 || strcmp(argv[arg], "-s") == 0)
+			std = atof(argv[arg+1]);
 	}
 	//std::uniform_real_distribution<float> dist(0.0,180.0);
 	std::uniform_real_distribution<float> random_angle(lower_bound,upper_bound);
-	std::normal_distribution<float> random_speed(343.0, 5);
+	std::normal_distribution<float> random_speed(343.0, std);
 	float azimuth[N];
 	float wind_speed[N];
 	std::ofstream outfile;
