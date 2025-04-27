@@ -149,11 +149,7 @@ int main(int argc, char* argv[]) {
 						output = inputBuffer[channelInputIndexUpper];
 					else
 						output = (upperDelay - sampleDelays[i][c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[i][c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
-					if(c < N_channels - 1)
-						cout << output << "\t";
-					else
-						cout << output << endl;
-					//fwrite(&output, sizeof(float), 1, stdout);
+					fwrite(&output, sizeof(float), 1, stdout);
 				}
 				inputIndex = (inputIndex + 1) % inputBufferSize;
 			}
