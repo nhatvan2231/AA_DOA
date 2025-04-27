@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 		calcTimeDelays(timeDelays[i], arrayGeometry, slowness[i], N_channels);
 	}
 
-	float inputBuffer[inputBufferSize];
+	double inputBuffer[inputBufferSize];
 	fill(inputBuffer, inputBuffer+inputBufferSize, 0.0);
 	unsigned inputIndex = 0;
 	double bufferholder = 0;
@@ -136,7 +136,8 @@ int main(int argc, char* argv[]) {
 			}
 			return 0;
 		}
-		while(fread(&inputBuffer[inputIndex], sizeof(float), 1, stdin)) {
+		while(fread(&inputBuffer[inputIndex], sizeof(double), 1, stdin)) {
+		//while(cin >> inputBuffer[inputIndex]) {
 			for(int i = 0; i < dataSample; i++){
 				for(int c = 0; c < N_channels; ++c) {
 					int upperDelay = std::ceil(sampleDelays[i][c]);
@@ -148,7 +149,11 @@ int main(int argc, char* argv[]) {
 						output = inputBuffer[channelInputIndexUpper];
 					else
 						output = (upperDelay - sampleDelays[i][c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[i][c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
-					fwrite(&output, sizeof(float), 1, stdout);
+					if(c < N_channels - 1)
+						cout << output << "\t";
+					else
+						cout << output << endl;
+					//fwrite(&output, sizeof(float), 1, stdout);
 				}
 				inputIndex = (inputIndex + 1) % inputBufferSize;
 			}
