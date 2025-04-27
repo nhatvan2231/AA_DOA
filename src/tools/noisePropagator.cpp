@@ -27,7 +27,7 @@ void calcSampleDelays(float sampleDelays[], double arrayGeometry[][3], float slo
 void calcTimeDelays(float sampleDelays[], double arrayGeometry[][3], float slowness[3], unsigned N_channels);
 
 int main(int argc, char* argv[]) {
-	if(argc < 7 || argc > 9){
+	if(argc < 5 || argc > 7){
 		cerr << "Usage: " << argv[0] << " --arrayGeometry <array geometry filename> --signalInfo <signal information filename> [optional: --humanReadable]\n" << endl;
 		cerr << "Array Geometry File Format:\n"<< ARRAY_GEOMETRY_FMT << endl;
 		cerr << "Signal Source File Format:\n"<< SIGNAL_SOURCE_FMT << endl;
@@ -42,15 +42,12 @@ int main(int argc, char* argv[]) {
 	string path;
 	bool getDelay = false;
 	bool humanReadable = false;
-	int dataSample = 0;
 
 	for(int arg = 0; arg < argc; ++arg) {
 		if(strcmp(argv[arg], "--arrayGeometry") == 0 || strcmp(argv[arg], "-aG") == 0)
 			N_channels = importArrayGeometry(argv[arg + 1], arrayGeometry);
 		else if(strcmp(argv[arg], "--signalInfo") == 0 || strcmp(argv[arg], "-sI") == 0)
 			path = argv[arg + 1];
-		else if(strcmp(argv[arg], "--dataSample") == 0 || strcmp(argv[arg], "-dS") == 0)
-			dataSample = atoi(argv[arg+1]);
 		else if(strcmp(argv[arg], "--getDelay") == 0 || strcmp(argv[arg], "-gD") == 0)
 			getDelay = true;
 		else if(strcmp(argv[arg], "--humanReadable") == 0 || strcmp(argv[arg], "-hR") == 0)
@@ -61,35 +58,25 @@ int main(int argc, char* argv[]) {
 		cerr << "Error in " << argv[0] << ":\n Invalid command-line arguments" << endl;
 		return 1;
 	}
-	float* sampleFrequency = new float[dataSample];
-	float* speed = new float[dataSample];
-	float* azimuth = new float[dataSample];
-	float* inclination = new float[dataSample];
+	float sampleFrequency;
+	float speed;
+	float azimuth;
+	float inclination;
 
-	string dummy[4];
-	inputFile >> dummy[0] >> dummy[1] >> dummy[2] >> dummy[3];
-	int i = 0;
-	for (int i = 0; i < dataSample; ++i){
-		inputFile >> sampleFrequency[i] >> speed[i] >> azimuth[i] >> inclination[i];
-	}
+	//string dummy[4];
+	//inputFile >> dummy[0] >> dummy[1] >> dummy[2] >> dummy[3];
+	//int i = 0;
+	inputFile >> sampleFrequency >> speed >> azimuth >> inclination;
 	inputFile.close();
 
 
-	float** slowness = new float*[dataSample];
-	float** timeDelays = new float*[dataSample];
+	float* slowness = new float[3];
+	float* timeDelays = new float[N_channels];
+	float* sampleDelays = new float[N_channels];
 
-	float** sampleDelays = new float*[dataSample];
-	for (int i = 0; i < dataSample; ++i){
-		slowness[i] = new float[3];
-		sampleDelays[i] = new float[N_channels];
-		timeDelays[i] = new float[N_channels];
-	}
-
-	for (int i = 0; i < dataSample; ++i){
-		calcSlownessVector(sampleFrequency[i], speed[i], azimuth[i], inclination[i], slowness[i]);
-		calcSampleDelays(sampleDelays[i], arrayGeometry, slowness[i], N_channels, sampleFrequency[i]);
-		calcTimeDelays(timeDelays[i], arrayGeometry, slowness[i], N_channels);
-	}
+	calcSlownessVector(sampleFrequency, speed, azimuth, inclination, slowness);
+	calcSampleDelays(sampleDelays, arrayGeometry, slowness, N_channels, sampleFrequency);
+	calcTimeDelays(timeDelays, arrayGeometry, slowness, N_channels);
 
 	double inputBuffer[inputBufferSize];
 	fill(inputBuffer, inputBuffer+inputBufferSize, 0.0);
@@ -98,61 +85,52 @@ int main(int argc, char* argv[]) {
 
 	if(humanReadable) { // Print human-readable data
 		if (getDelay){
-			for (int i = 0; i < dataSample; ++i){
-				for (int j = 0; j < N_channels; ++j){
-							float output = timeDelays[i][j];
-							cout << output << "\t";
-				}
+			for (int i = 0; i < N_channels; ++i){
+				float output = timeDelays[i];
+				cout << output << "\t";
 			}
 			return 0;
 		}
-		for(int i = 0; i < dataSample; i++){
-			while(cin >> inputBuffer[inputIndex]) {
-				for(int c = 0; c < N_channels; ++c) {
-					int upperDelay = std::ceil(sampleDelays[i][c]);
-					int lowerDelay = std::floor(sampleDelays[i][c]);
-					unsigned channelInputIndexUpper = (inputIndex - upperDelay + inputBufferSize) % inputBufferSize;
-					unsigned channelInputIndexLower = (inputIndex - lowerDelay + inputBufferSize) % inputBufferSize;
-					float output = 0;
-					if(upperDelay == lowerDelay)
-						output = inputBuffer[channelInputIndexUpper];
-					else
-						output = (upperDelay - sampleDelays[i][c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[i][c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
-					if(c < N_channels - 1)
-						cout << output << "\t";
-					else
-						cout << output << endl;
-				}
-				inputIndex = (inputIndex + 1) % inputBufferSize;
+		while(cin >> inputBuffer[inputIndex]) {
+			for(int c = 0; c < N_channels; ++c) {
+				int upperDelay = std::ceil(sampleDelays[c]);
+				int lowerDelay = std::floor(sampleDelays[c]);
+				unsigned channelInputIndexUpper = (inputIndex - upperDelay + inputBufferSize) % inputBufferSize;
+				unsigned channelInputIndexLower = (inputIndex - lowerDelay + inputBufferSize) % inputBufferSize;
+				float output = 0;
+				if(upperDelay == lowerDelay)
+					output = inputBuffer[channelInputIndexUpper];
+				else
+					output = (upperDelay - sampleDelays[c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
+				if(c < N_channels - 1)
+					cout << output << "\t";
+				else
+					cout << output << endl;
 			}
+			inputIndex = (inputIndex + 1) % inputBufferSize;
 		}
 	} else {
 		if (getDelay){
-			for (int i = 0; i < dataSample; ++i){
-				for (int j = 0; j < N_channels; ++j){
-							float output = timeDelays[i][j];
-							fwrite(&output, sizeof(float), 1, stdout);
-				}
+			for (int i = 0; i < N_channels; ++i){
+				float output = timeDelays[i];
+				fwrite(&output, sizeof(float), 1, stdout);
 			}
 			return 0;
 		}
-		for(int i = 0; i < dataSample; i++){
-			while(fread(&inputBuffer[inputIndex], sizeof(double), 1, stdin)) {
-		//while(cin >> inputBuffer[inputIndex]) {
-				for(int c = 0; c < N_channels; ++c) {
-					int upperDelay = std::ceil(sampleDelays[i][c]);
-					int lowerDelay = std::floor(sampleDelays[i][c]);
-					unsigned channelInputIndexUpper = (inputIndex - upperDelay + inputBufferSize) % inputBufferSize;
-					unsigned channelInputIndexLower = (inputIndex - lowerDelay + inputBufferSize) % inputBufferSize;
-					float output = 0;
-					if(upperDelay == lowerDelay)
-						output = inputBuffer[channelInputIndexUpper];
-					else
-						output = (upperDelay - sampleDelays[i][c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[i][c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
-					fwrite(&output, sizeof(float), 1, stdout);
-				}
-				inputIndex = (inputIndex + 1) % inputBufferSize;
+		while(fread(&inputBuffer[inputIndex], sizeof(double), 1, stdin)) {
+			for(int c = 0; c < N_channels; ++c) {
+				int upperDelay = std::ceil(sampleDelays[c]);
+				int lowerDelay = std::floor(sampleDelays[c]);
+				unsigned channelInputIndexUpper = (inputIndex - upperDelay + inputBufferSize) % inputBufferSize;
+				unsigned channelInputIndexLower = (inputIndex - lowerDelay + inputBufferSize) % inputBufferSize;
+				float output = 0;
+				if(upperDelay == lowerDelay)
+					output = inputBuffer[channelInputIndexUpper];
+				else
+					output = (upperDelay - sampleDelays[c]) * inputBuffer[channelInputIndexLower] + (sampleDelays[c] - lowerDelay) * inputBuffer[channelInputIndexUpper];
+				fwrite(&output, sizeof(float), 1, stdout);
 			}
+			inputIndex = (inputIndex + 1) % inputBufferSize;
 		}
 	}
 

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
 	for (int j = 0; j<M; ++j){
 		std::string out_path = directory + "/random_signal_source_info_" + to_string(j) + ".dat";
 		outfile.open(out_path);
-		outfile<<"sampleFrequency\t"<<"speed\t"<<"azimuth\t"<<"inclination"<<endl;
+		//outfile<<"sampleFrequency\t"<<"speed\t"<<"azimuth\t"<<"inclination"<<endl;
 		for (int i=0; i<N; i++){
 			azimuth[i] = random_angle(mt);
 			wind_speed[i] = random_speed(mt);
