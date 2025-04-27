@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
 			}
 			return 0;
 		}
-		while(cin >> inputBuffer[inputIndex]) {
-			for(int i = 0; i < dataSample; i++){
+		for(int i = 0; i < dataSample; i++){
+			while(cin >> inputBuffer[inputIndex]) {
 				for(int c = 0; c < N_channels; ++c) {
 					int upperDelay = std::ceil(sampleDelays[i][c]);
 					int lowerDelay = std::floor(sampleDelays[i][c]);
@@ -136,9 +136,9 @@ int main(int argc, char* argv[]) {
 			}
 			return 0;
 		}
-		while(fread(&inputBuffer[inputIndex], sizeof(double), 1, stdin)) {
+		for(int i = 0; i < dataSample; i++){
+			while(fread(&inputBuffer[inputIndex], sizeof(double), 1, stdin)) {
 		//while(cin >> inputBuffer[inputIndex]) {
-			for(int i = 0; i < dataSample; i++){
 				for(int c = 0; c < N_channels; ++c) {
 					int upperDelay = std::ceil(sampleDelays[i][c]);
 					int lowerDelay = std::floor(sampleDelays[i][c]);
