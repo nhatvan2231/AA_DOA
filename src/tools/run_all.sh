@@ -5,10 +5,12 @@ dummy_file="/tmp/dummy.txt"
 for dir in ~/AA_DOA/src/data/raw_rss360/*.dat; do
 	#OUTPUT=$(echo ${dir} | sed 's/\.dat/_tau.bin/')
 	OUTPUT=$(echo ${dir} | sed 's/\.dat/_raw.bin/')
+	echo ${OUTPUT}
+	>${OUTPUT}
 	while read -r line; do
 		l="$line"
 		echo "$line" > $dummy_file
-		cat ~/AA_DOA/src/tools/signal_1khz.bin | ./noisePropagator --arrayGeometry AA_geometry.tsv --signalInfo ${dummy_file} | tee "test69.bin"
+		cat ~/AA_DOA/src/tools/signal_1khz.bin | ./noisePropagator --arrayGeometry AA_geometry.tsv --signalInfo ${dummy_file} | tee -a ${OUTPUT} >/dev/null
 		# >> "test72.bin"
 
 	done < "$dir"

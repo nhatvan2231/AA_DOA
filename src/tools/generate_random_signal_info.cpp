@@ -40,7 +40,7 @@ int main(int argc, char* argv[]){
 	std::uniform_real_distribution<float> random_angle(lower_bound,upper_bound);
 	std::normal_distribution<float> random_speed(343.0, std);
 	float azimuth[N];
-	float wind_speed[N];
+	float sound_speed[N];
 	std::ofstream outfile;
 	for (int j = 0; j<M; ++j){
 		std::string out_path = directory + "/random_signal_source_info_" + to_string(j) + ".dat";
@@ -48,10 +48,10 @@ int main(int argc, char* argv[]){
 		//outfile<<"sampleFrequency\t"<<"speed\t"<<"azimuth\t"<<"inclination"<<endl;
 		for (int i=0; i<N; i++){
 			azimuth[i] = random_angle(mt);
-			wind_speed[i] = random_speed(mt);
+			sound_speed[i] = random_speed(mt);
 		}
 		for (int i=0; i<N; i++){
-			outfile<<std::fixed<<std::setprecision(1)<<48000.0<<"\t"<<wind_speed[i]<<"\t"<<azimuth[i]<<"\t"<<0<<endl;
+			outfile<<std::fixed<<std::setprecision(1)<<48000.0<<"\t"<<sound_speed[i]<<"\t"<<azimuth[i]<<"\t"<<0<<endl;
 		}
 		outfile.close();
 	}
