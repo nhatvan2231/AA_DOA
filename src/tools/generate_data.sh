@@ -1,5 +1,14 @@
 #!/bin/sh
 
+#############################################################################
+# A interactive prompt to generate data
+# It can generate:
+#		Random source signal information -> Sample frequency, sound speed,
+#														direction relative to the array
+#		Propagating the source signal throughout an array to get the time
+#		delay and wave pressure at microphones
+#############################################################################
+
 # default variable
 default_dir="$HOME/AA_DOA/src/data/rss" # Directory to save data
 default_lb=0.0		# lower angle bound
@@ -30,6 +39,10 @@ yes_no_prompt() {
 		esac
 	done
 }
+
+printf "$s\n" \
+	"This is a interactive prompt to generate synthetic data" \
+	"for a particular microphone array and source signal"
 
 # Prompting for directory to save data
 printf "Enter directory to save [%s]: " "$default_dir"; read -r dir
@@ -97,20 +110,20 @@ yes_no_prompt "Propagating pressure wave for each microphones?" && {
 
 
 # Copy geometry and signal file into directory
-cp $geo $dir
-cp $sig $dir
+cp $geo $dir/array_geometry.tsv
+cp $sig $dir/source_signal.bin
 
 # make a README
 touch $dir/README.md
-printf	"%s\n" \
-			"Random sources signal at different angles and sound speed\n" \
-			"* signal\_info -> source signal information:\n" \
-			"	- Sampling Frequency: 48000.0\n" \
-			"	- Sound speed: mean=0, std=$s\n" \
-			"	- Angle: lower bound=$lb, upper bound=$ub\n" \
-			"* signal\_pres -> pressure wave received by microphones\n"\
-			"* signal\_delay -> time delay betwee microphones\n"\
-			"* $( echo $geo | sed "s/.*\///" ) -> array geometry file\n" \
-			"* $( echo $sig | sed "s/.*\///" ) -> source signal file\n" \
+printf	"%s" \
+			"Random sources signal at different angles and sound speed" \
+			"* signal\_info -> source signal information:" \
+			"	- Sampling Frequency: 48000.0" \
+			"	- Sound speed: mean=0, std=$s" \
+			"	- Angle: lower bound=$lb, upper bound=$ub" \
+			"* signal\_pres -> pressure wave received by microphones"\
+			"* signal\_delay -> time delay betwee microphones"\
+			"* array_geometry.tsv -> array geometry file" \
+			"* source_signal.bin -> source signal file" \
 			> $dir/README.md
 
